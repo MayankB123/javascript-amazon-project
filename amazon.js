@@ -1,3 +1,7 @@
+import { cart } from '../data/cart.js';
+import { products } from '../data/products.js';
+import { formatCurrency } from './data/money.js';
+
 let productsHTML = '';
 
 products.forEach((product) => {
@@ -19,11 +23,11 @@ products.forEach((product) => {
           </div>
 
           <div class="product-price">
-            ${(product.priceCents / 100).toFixed(2)}
+          ${formatCurrency(product.priceCents)}
           </div>
 
           <div class="product-quantity-container">
-            <select>
+            <select class="js-select-${product.id}">
               <option selected value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -39,7 +43,7 @@ products.forEach((product) => {
 
           <div class="product-spacer"></div>
 
-          <div class="added-to-cart">
+          <div class="added-to-cart js-added-to-cart-${product.id}">
             <img src="images/icons/checkmark.png">
             Added
           </div>
@@ -53,11 +57,26 @@ products.forEach((product) => {
 let file = document.querySelector('.js-products-grid');
 file.innerHTML = productsHTML;
 
+let timeOutID = null;
+
 document.querySelectorAll('.js-add-to-cart').forEach((button) => {
     button.addEventListener('click', () => {
+        if (timeOutID) {
+          clearTimeout(timeOutID);
+        }
+
         const productId = button.dataset.productId;
 
         let matchingItem;
+
+        const quantity = document.querySelector(`.js-select-${productId}`).value;
+
+        const addedToCart = document.querySelector(`.js-added-to-cart-${productId}`);
+        addedToCart.style.opacity = 1;
+
+        timeOutID = setTimeout(function() {
+          addedToCart.style.opacity = 0;
+        }, 2000);
 
         cart.forEach((item) => {
           if (productId === item.productId) {
@@ -66,14 +85,16 @@ document.querySelectorAll('.js-add-to-cart').forEach((button) => {
         });
 
         if (matchingItem) {
-          matchingItem.quantity += 1;
+          matchingItem.quantity += parseInt(quantity);
         }
         else {
           cart.push({
             productId: productId,
-            quantity: 1
+            quantity: parseInt(quantity)
         });
         };
+        let cartQuantity = document.querySelector('.js-cart-quantity');
+        cartQuantity.innerHTML = cart.length;
         console.log(cart);
     });
 });
